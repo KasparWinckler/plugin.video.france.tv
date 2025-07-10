@@ -27,6 +27,7 @@ def request_channels():
         for channel in [
             item.get("channel") or item.get("partner") or {} for item in items
         ]
+        if channel
     }
 
 
