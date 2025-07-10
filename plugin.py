@@ -24,7 +24,9 @@ def request_channels():
     ).get("items", [])
     return {
         channel.get("si_id", ""): channel
-        for channel in [item.get("channel") or item.get("partner") for item in items]
+        for channel in [
+            item.get("channel") or item.get("partner") or {} for item in items
+        ]
     }
 
 
