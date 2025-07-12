@@ -7,32 +7,25 @@ def request(url, params={}):
     return requests.get(url, params=params).json()
 
 
-def request_channels():
-    items = request(
+@PLUGIN.register_folder("")
+def directs():
+    directs = request(
         "https://api-mobile.yatta.francetv.fr/generic/directs",
         params={"platform": "apps"},
     ).get("items", [])
-    return {
-        channel.get("si_id", ""): channel
-        for channel in [
-            item.get("channel") or item.get("partner") or {} for item in items
-        ]
-        if channel
-    }
-
-
-@PLUGIN.register_folder("")
-def home():
-    for si_id, channel in request_channels().items():
-        item = PLUGIN.add_item_by_mode("", "play", si_id)
-        item.setLabel(channel.get("label", ""))
-        art = {}
-        for image in channel.get("images", []):
-            if image.get("type") == "carre":
-                urls = image.get("urls", {})
-                if urls:
-                    art["thumb"] = list(urls.values())[-1]
-        item.setArt(art)
+    for direct in directs:
+        channel = direct.get("channel") or direct.get("partner") or {}
+        si_id = channel.get("si_id")
+        if si_id:
+            item = PLUGIN.add_item_by_mode("", "play", si_id)
+            item.setLabel(channel.get("label", ""))
+            art = {}
+            for image in channel.get("images", []):
+                if image.get("type") == "carre":
+                    urls = image.get("urls", {})
+                    if urls:
+                        art["thumb"] = list(urls.values())[-1]
+            item.setArt(art)
 
 
 @PLUGIN.register_playable("play")
