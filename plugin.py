@@ -35,13 +35,13 @@ def play(item, si_id):
         params={"country_code": "FR", "os": "android"},
     )
 
-    meta = data["meta"]
-    item.setArt({"fanart": meta["image_url"]})
-    item.setArt({"thumb": meta["image_url"]})
-    item.setLabel(meta["title"])
+    meta = data.get("meta", {})
+    image_url = meta.get("image_url", "")
+    item.setArt({"fanart": image_url, "thumb": image_url})
+    item.setLabel(meta.get("title", ""))
     tag = item.getVideoInfoTag()
-    tag.setFirstAired(meta["broadcasted_at"])
-    tag.setPlot(meta["description"])
+    tag.setFirstAired(meta.get("broadcasted_at", ""))
+    tag.setPlot(meta.get("description", ""))
 
     video = data["video"]
     token = video["token"]
