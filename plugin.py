@@ -21,14 +21,6 @@ def request_channels():
     }
 
 
-def request_video(si_id):
-    video = request(
-        "https://player.webservices.francetelevisions.fr/v1/videos/" + si_id,
-        params={"country_code": "FR", "os": "android"},
-    )["video"]
-    return request(video["token"], params={"url": video["url"]})["url"]
-
-
 @PLUGIN.register_folder("")
 def home():
     for si_id, channel in request_channels().items():
