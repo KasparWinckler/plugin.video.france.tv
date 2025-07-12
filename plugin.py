@@ -29,22 +29,18 @@ def request_video(si_id):
     return request(video["token"], params={"url": video["url"]})["url"]
 
 
-def update_item(item, channel):
-    item.setLabel(channel.get("label", ""))
-    art = {}
-    for image in channel.get("images", []):
-        if image.get("type") == "carre":
-            urls = image.get("urls", {})
-            if urls:
-                art["thumb"] = list(urls.values())[-1]
-    item.setArt(art)
-
-
 @PLUGIN.register_folder("")
 def home():
     for si_id, channel in request_channels().items():
         item = PLUGIN.add_item_by_mode("", "play", si_id)
-        update_item(item, channel)
+        item.setLabel(channel.get("label", ""))
+        art = {}
+        for image in channel.get("images", []):
+            if image.get("type") == "carre":
+                urls = image.get("urls", {})
+                if urls:
+                    art["thumb"] = list(urls.values())[-1]
+        item.setArt(art)
 
 
 @PLUGIN.register_playable("play")
