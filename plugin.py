@@ -9,8 +9,6 @@ HEADERS = urlencode(
 )
 LICENSE_KEY = "|".join(("https://simulcast-b.ftven.fr/keys/hls.key", HEADERS))
 
-USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.46 Mobile Safari/537.36"
-
 
 def request(url, params={}):
     return requests.get(url, params=params).json()
