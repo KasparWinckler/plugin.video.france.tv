@@ -1,7 +1,6 @@
 from plugin_zen import PLUGIN
 from urllib.parse import urlencode
 import requests
-import threading
 
 HEADERS = urlencode(
     {
@@ -59,14 +58,26 @@ def home():
 
 @PLUGIN.register_playable("play")
 def play(item, si_id):
-    thread = threading.Thread(
-        target=update_item(item, request_channels().get(si_id, {}))
+    data = request(
+        "https://player.webservices.francetelevisions.fr/v1/videos/" + si_id,
+        params={"country_code": "FR", "os": "android"},
     )
-    thread.start()
 
-    url = request_video(si_id)
-    url += "|" + HEADERS
-    item.setPath(url)
+    meta = data["meta"]
+    item.setArt({"fanart": meta["image_url"]})
+    item.setArt({"thumb": meta["image_url"]})
+    item.setLabel(meta["title"])
+    tag = item.getVideoInfoTag()
+    tag.setFirstAired(meta["broadcasted_at"])
+    tag.setPlot(meta["description"])
+
+    video = data["video"]
+    token = video["token"]
+    url = video["url"]
+    path = request(token, params={"url": url})["url"]
+
+    path += "|" + HEADERS
+    item.setPath(path)
     item.setProperty("inputstream", "inputstream.adaptive")
     # item.setProperty("inputstream.adaptive.common_headers", HEADERS)
     item.setProperty("inputstream.adaptive.manifest_headers", HEADERS)
@@ -76,8 +87,6 @@ def play(item, si_id):
     else:
         item.setMimeType("application/vnd.apple.mpegurl")
         item.setProperty("inputstream.adaptive.license_key", LICENSE_KEY)
-
-    thread.join()
 
 
 PLUGIN.run()
