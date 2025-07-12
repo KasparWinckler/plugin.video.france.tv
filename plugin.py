@@ -2,13 +2,6 @@ from plugin_zen import PLUGIN
 from urllib.parse import urlencode
 import requests
 
-HEADERS = urlencode(
-    {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.46 Mobile Safari/537.36"
-    }
-)
-LICENSE_KEY = "|".join(("https://simulcast-b.ftven.fr/keys/hls.key", HEADERS))
-
 
 def request(url, params={}):
     return requests.get(url, params=params).json()
@@ -74,17 +67,23 @@ def play(item, si_id):
     url = video["url"]
     path = request(token, params={"url": url})["url"]
 
-    path += "|" + HEADERS
+    headers = urlencode(
+        {
+            "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.46 Mobile Safari/537.36"
+        }
+    )
+    path = "|".join((path, headers))
     item.setPath(path)
     item.setProperty("inputstream", "inputstream.adaptive")
-    # item.setProperty("inputstream.adaptive.common_headers", HEADERS)
-    item.setProperty("inputstream.adaptive.manifest_headers", HEADERS)
-    item.setProperty("inputstream.adaptive.stream_headers", HEADERS)
+    # item.setProperty("inputstream.adaptive.common_headers", headers)
+    item.setProperty("inputstream.adaptive.manifest_headers", headers)
+    item.setProperty("inputstream.adaptive.stream_headers", headers)
     if ".mpd" in url:
         item.setMimeType("application/dash+xml")
     else:
         item.setMimeType("application/vnd.apple.mpegurl")
-        item.setProperty("inputstream.adaptive.license_key", LICENSE_KEY)
+        license_key = "|".join(("https://simulcast-b.ftven.fr/keys/hls.key", headers))
+        item.setProperty("inputstream.adaptive.license_key", license_key)
 
 
 PLUGIN.run()
