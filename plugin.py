@@ -35,9 +35,11 @@ def directs():
 
 @PLUGIN.register_playable("play")
 def play(item, si_id):
+    os = "ios" if PLUGIN.xbmcplugin("getSetting", "prefer_hls") == "true" else "android"
+
     data = request(
         "https://player.webservices.francetelevisions.fr/v1/videos/" + si_id,
-        params={"country_code": "FR", "os": "android"},
+        params={"country_code": "FR", "os": os},
     )
 
     video = data["video"]
