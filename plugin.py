@@ -7,6 +7,18 @@ def request(url, params={}):
     return requests.get(url, params=params).json()
 
 
+def update_item(item, meta):
+    item.setLabel(meta.get("label", ""))
+
+    arts = {"carre": "thumb", "background_16x9": "fanart"}
+    art = {}
+    for image in meta.get("images", []):
+        type = arts.get(image.get("type", ""))
+        if type:
+            art[type] = list(image.get("urls", {}).values())[-1]
+    item.setArt(art)
+
+
 @PLUGIN.register_folder("")
 def directs():
     directs = request(
@@ -18,14 +30,7 @@ def directs():
         si_id = channel.get("si_id")
         if si_id:
             item = PLUGIN.add_item_by_mode("", "play", si_id)
-            item.setLabel(channel.get("label", ""))
-            art = {}
-            for image in channel.get("images", []):
-                if image.get("type") == "carre":
-                    urls = image.get("urls", {})
-                    if urls:
-                        art["thumb"] = list(urls.values())[-1]
-            item.setArt(art)
+            update_item(item, channel)
 
 
 @PLUGIN.register_playable("play")
@@ -34,14 +39,6 @@ def play(item, si_id):
         "https://player.webservices.francetelevisions.fr/v1/videos/" + si_id,
         params={"country_code": "FR", "os": "android"},
     )
-
-    meta = data.get("meta", {})
-    image_url = meta.get("image_url", "")
-    item.setArt({"fanart": image_url, "thumb": image_url})
-    item.setLabel(meta.get("title", ""))
-    tag = item.getVideoInfoTag()
-    tag.setFirstAired(meta.get("broadcasted_at", ""))
-    tag.setPlot(meta.get("description", ""))
 
     video = data["video"]
     token = video["token"]
@@ -65,6 +62,14 @@ def play(item, si_id):
         item.setMimeType("application/vnd.apple.mpegurl")
         license_key = "|".join(("https://simulcast-b.ftven.fr/keys/hls.key", headers))
         item.setProperty("inputstream.adaptive.license_key", license_key)
+
+    meta = data.get("meta", {})
+    image_url = meta.get("image_url", "")
+    item.setArt({"fanart": image_url, "thumb": image_url})
+    item.setLabel(meta.get("title", ""))
+    tag = item.getVideoInfoTag()
+    tag.setFirstAired(meta.get("broadcasted_at", ""))
+    tag.setPlot(meta.get("description", ""))
 
 
 PLUGIN.run()
