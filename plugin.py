@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 import requests
 
 
-def request(url, params={}):
+def request(url, params={"platform": "apps"}):
     return requests.get(url, params=params).json()
 
 
@@ -21,10 +21,9 @@ def update_item(item, meta):
 
 @PLUGIN.register_folder("")
 def directs():
-    directs = request(
-        "https://api-mobile.yatta.francetv.fr/generic/directs",
-        params={"platform": "apps"},
-    ).get("items", [])
+    directs = request("https://api-mobile.yatta.francetv.fr/generic/directs").get(
+        "items", []
+    )
     for direct in directs:
         channel = direct.get("channel") or direct.get("partner") or {}
         si_id = channel.get("si_id")
