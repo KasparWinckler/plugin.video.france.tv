@@ -7,6 +7,90 @@ def request(url, params={"platform": "apps"}):
     return requests.get(url, params=params).json()
 
 
+def get_list(url, name="items"):
+    return request(url).get(name) or []
+
+
+@PLUGIN.register_folder("directs")
+def directs():
+    contents = get_list("https://api-mobile.yatta.francetv.fr/generic/directs")
+    contents = [
+        content.get("channel") or content.get("partner") or content
+        for content in contents
+    ]
+    add_contents(contents)
+
+
+@PLUGIN.register_folder("categories")
+def categories():
+    contents = get_list(
+        "http://api-front.yatta.francetv.fr/standard/publish/categories", "result"
+    )
+    add_contents(contents)
+
+
+@PLUGIN.register_folder("collection")
+def collection(id):
+    contents = get_list(
+        f"https://api-mobile.yatta.francetv.fr/generic/collections/{id}"
+    )
+    add_contents(contents)
+
+
+@PLUGIN.register_folder("url")
+def url(url):
+    contents = get_list(url, "collections")
+    add_contents(contents, url)
+
+
+@PLUGIN.register_folder("url_item")
+def url_item(url, label):
+    contents = get_list(url, "collections")
+    contents = [content for content in contents if content.get("label") == label]
+    contents = contents[0].get("items") or []
+    add_contents(contents)
+
+
+def add_contents(contents, url=None):
+    for content in contents:
+        label = content.get("label")
+        si_id = content.get("si_id")
+        type = content.get("type")
+        if url:
+            item = PLUGIN.add_item_by_mode("", "url_item", url, label)
+        elif si_id:
+            item = PLUGIN.add_item_by_mode("", "play", si_id)
+        elif type == "article":
+            continue
+        elif type == "collection":
+            item = PLUGIN.add_item_by_mode("", "collection", str(id))
+        elif type == "channel":
+            item = PLUGIN.add_item_by_mode(
+                "",
+                "url",
+                "https://api-mobile.yatta.francetv.fr/apps/channels/"
+                + content["channel_url"],
+            )
+        elif type in ["categorie", "sous_categorie"]:
+            item = PLUGIN.add_item_by_mode(
+                "",
+                "url",
+                "https://api-mobile.yatta.francetv.fr/apps/categories/"
+                + content["url_complete"],
+            )
+        elif type in ["event", "program"]:
+            item = PLUGIN.add_item_by_mode(
+                "",
+                "url",
+                "https://api-mobile.yatta.francetv.fr/apps/program/"
+                + (content.get("program_path") or content.get("url_complete")),
+            )
+        else:
+            print(json.dumps(content, indent=2))
+            quit()
+        item.setLabel(content.get("label") or content.get("title") or "")
+
+
 def update_item(item, meta):
     item.setLabel(meta.get("label", ""))
 
@@ -21,15 +105,8 @@ def update_item(item, meta):
 
 @PLUGIN.register_folder("")
 def directs():
-    directs = request("https://api-mobile.yatta.francetv.fr/generic/directs").get(
-        "items", []
-    )
-    for direct in directs:
-        channel = direct.get("channel") or direct.get("partner") or {}
-        si_id = channel.get("si_id")
-        if si_id:
-            item = PLUGIN.add_item_by_mode("", "play", si_id)
-            update_item(item, channel)
+    PLUGIN.add_item_by_mode("Directs", "directs")
+    PLUGIN.add_item_by_mode("Replay", "categories")
 
 
 @PLUGIN.register_playable("play")
