@@ -9,8 +9,6 @@ def request(url, params={"platform": "apps"}):
 
 @PLUGIN.register_folder("")
 def directs():
-    PLUGIN.xbmcplugin("setContent", "videos")
-
     contents = request("https://api-mobile.yatta.francetv.fr/generic/directs").get(
         "items", []
     )
@@ -76,4 +74,5 @@ def play(item, si_id):
     # item.setLabel(data.get("meta", {}).get("title", ""))
 
 
+PLUGIN.xbmcplugin("setContent", "videos")
 PLUGIN.run()
