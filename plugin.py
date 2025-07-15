@@ -24,7 +24,7 @@ def directs():
 
 
 def update_item(item, metadata):
-    item.setLabel(metadata.get("label", ""))
+    item.setLabel(metadata.get("label") or metadata.get("title") or "")
     arts = {"carre": "thumb"}
     art = {}
     for image in metadata.get("images", []):
