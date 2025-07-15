@@ -58,6 +58,7 @@ def play(item, si_id):
         }
     )
     path = "|".join((path, headers))
+    item.setContentLookup(False)
     item.setPath(path)
     item.setProperty("inputstream", "inputstream.adaptive")
     # item.setProperty("inputstream.adaptive.common_headers", headers)
@@ -70,7 +71,7 @@ def play(item, si_id):
         license_key = "|".join(("https://simulcast-b.ftven.fr/keys/hls.key", headers))
         item.setProperty("inputstream.adaptive.license_key", license_key)
 
-    item.setLabel(data.get("meta", {}).get("title", ""))
+    # item.setLabel(data.get("meta", {}).get("title", ""))
 
 
 PLUGIN.run()
